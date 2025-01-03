@@ -1,0 +1,4 @@
+ADDITIONAL INFORMATION 
+
+Airline: Nordica
+Brief Period Duration [min]: 15
