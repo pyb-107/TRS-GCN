@@ -134,7 +134,7 @@ def remove_broken_sample(data_dir):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     home = expanduser("~")
-    data_dir = f'{home}/storage1/instances/ds/testData-with-solve20250103_3000_3100'
+    data_dir = f'{home}/storage1/instances/ds/testData-with-solveTest_300_400'
     remove_broken_sample(data_dir)
     collect_samples(data_dir, False)
 
