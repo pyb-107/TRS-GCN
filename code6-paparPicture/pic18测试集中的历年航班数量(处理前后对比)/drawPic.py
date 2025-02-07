@@ -22,11 +22,11 @@ data2 = [
 
 # Plotting the data
 plt.figure(figsize=(10, 6))
-plt.plot(years, data1, label="flight_num", marker='o')
-plt.plot(years, data2, label="paring_num", marker='x')
+plt.plot(years, data1, label="The number of Flight Schedule", marker='o')
+plt.plot(years, data2, label="The number of Flight String", marker='x')
 
 # Adding titles and labels
-plt.title('The change of the number of national flight plans and the corresponding number of flight task rings')
+plt.title('The change of the number of Flight Schedule and the number of Flight string')
 plt.xlabel('Year')
 plt.ylabel('Num')
 plt.xticks(rotation=45)

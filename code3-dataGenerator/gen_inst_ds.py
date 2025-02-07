@@ -46,33 +46,22 @@ class Graph:
 
     @staticmethod
     def barabasi_albert(number_of_nodes, affinity, random):
-        """
-        Generate a Barabási-Albert random graph with a given edge probability.
-        Parameters
-        ----------
-        number_of_nodes : int
-            The number of nodes in the graph.
-        affinity : integer >= 1
-            The number of nodes each new node will be attached to, in the sampling scheme.
-        random : numpy.random.RandomState
-            A random number generator.
-        Returns
-        -------
-        Graph
-            The generated graph.
-        """
+        # 检查参数
         assert affinity >= 1 and affinity < number_of_nodes
-
+        # 初始化节点，二向图，所以一开始只有两个节点
         edges = set()
         degrees = np.zeros(number_of_nodes, dtype=int)
         neighbors = {node: set() for node in range(number_of_nodes)}
+        # 每一轮循环都会添加一个节点
         for new_node in range(affinity, number_of_nodes):
-            # first node is connected to all previous ones (star-shape)
+            # 第一个节点首先会连接前面所有的节点，（如果不这样做，后面由于设置了偏向链接度高的节点，则会导致后面节点一直连这个）
             if new_node == affinity:
                 neighborhood = np.arange(new_node)
-            # remaining nodes are picked stochastically
+            #
             else:
+            # 从这里开始就是优先链接了，概率就是这个neighbor_prob，当前节点的度除以所有节点的度
                 neighbor_prob = degrees[:new_node] / (2 * len(edges))
+            # 同时增加一点随机性
                 neighborhood = random.choice(new_node, affinity, replace=False, p=neighbor_prob)
             for node in neighborhood:
                 edges.add((node, new_node))
@@ -86,16 +75,8 @@ class Graph:
 
 
 def generate_ds(graph, filename):
-    """
-    Generate a Maximum Independent Set (also known as Maximum Stable Set) instance
-    in CPLEX LP format from a previously generated graph.
-    Parameters
-    ----------
-    graph : Graph
-        The graph from which to build the independent set problem.
-    filename : str
-        Path to the file to save.
-    """
+
+    # 这里的代码就是将上面生成的图结构转化成cplex格式的lp问题
 
     with open(filename, 'w') as lp_file:
         lp_file.write(
