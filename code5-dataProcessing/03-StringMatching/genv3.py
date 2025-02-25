@@ -4,6 +4,8 @@ import time
 import bisect
 from datetime import datetime
 
+# 记录代码开始执行的时间
+start_total_time = time.time()
 
 def load_flights(file_path):
     """读取CSV文件并解析航班数据，预处理后续连接"""
@@ -79,15 +81,20 @@ def process_flight_files(folder_path, output_folder):
         # 生成所有航班序列
         sequences = find_flight_sequences(flight_list, next_flights)
 
-        # 转换为航班号字符串
+        # 格式化输出为 'Duty Period #, Flights' 形式
         formatted = [
-            ",".join(flight_list[i]["Flight No"] for i in seq)
-            for seq in sequences
+            f"{idx + 1},\"{str([flight_list[i]['Flight No'] for i in seq])}\""
+            for idx, seq in enumerate(sequences)
         ]
 
+        # 修改输出文件名的格式：将 "preDeal_" 改为 "paring_"
+        output_file_name = file.replace("preDeal_", "paring_")
+        output_path = os.path.join(output_folder, output_file_name)
+
         # 保存结果
-        output_path = os.path.join(output_folder, f"sequences_{file}")
-        pd.DataFrame({"Flight Sequences": formatted}).to_csv(output_path, index=False)
+        with open(output_path, "w") as output_file:
+            output_file.write("Duty Period #,Flights\n")  # 写入标题行
+            output_file.write("\n".join(formatted))  # 写入所有的序列
 
         # 性能统计
         elapsed = time.time() - start_time
@@ -100,3 +107,12 @@ def process_flight_files(folder_path, output_folder):
 folder_path = "./input"
 output_folder = "./output"
 process_flight_files(folder_path, output_folder)
+
+# 记录代码结束执行的时间
+end_total_time = time.time()
+
+# 计算总执行时间
+total_elapsed_time = end_total_time - start_total_time
+
+# 打印总执行时间
+print(f"代码总执行时间: {total_elapsed_time:.2f} 秒")

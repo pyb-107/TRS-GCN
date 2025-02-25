@@ -1,3 +1,6 @@
+import sys
+import os
+import time
 import os, sys
 import argparse
 import numpy as np
@@ -13,9 +16,37 @@ from gurobipy import *
 import gurobipy as gp
 import time
 import os
+import sys
 
-# 这段代码是生成随机的整数规划问题，然后使用Groubi求解，并记录求解过程和时间，以及其解
-# 结果保存在C:\Users\Administrator\storage1\instances\ds\目录中
+solveTime = 100
+
+class DualOutput:
+    """
+    Custom class to redirect stdout to both console and a log file.
+    """
+    def __init__(self, log_file_path):
+        self.console = sys.__stdout__  # Original stdout (console)
+        self.log_file = open(log_file_path, 'w')  # Open the log file for writing
+        self.is_closed = False  # Track whether the file is closed
+
+    def write(self, message):
+        if not self.is_closed:
+            # Write the message to console
+            self.console.write(message)
+            # Write the message to the log file
+            self.log_file.write(message)
+
+    def flush(self):
+        if not self.is_closed:
+            # Ensure everything gets flushed to both places
+            self.console.flush()
+            self.log_file.flush()
+
+    def close(self):
+        if not self.is_closed:
+            # Close the log file when done
+            self.log_file.close()
+            self.is_closed = True
 
 class Graph:
     """
@@ -74,6 +105,30 @@ class Graph:
         return graph
 
 
+# 定义回调函数
+# 定义回调函数
+def mycallback(model, where):
+    # 获取当前时间
+    current_time = time.time()
+
+    if where == gp.GRB.Callback.MIP:
+        # 获取当前的最优目标值
+        obj_val = model.cbGet(gp.GRB.Callback.MIP_OBJBST)
+
+        # 如果最优目标值发生变化
+        if obj_val < gp.GRB.INFINITY and obj_val != model._best_obj:
+            # 更新最优值和时间
+            model._best_obj = obj_val
+            model._last_change_time = current_time
+            print(f"当前时间: {current_time - model._start_time:.2f}秒, 最优值: {obj_val}")
+            # 记录最优值变化
+            model._log.append(f"Time: {current_time - model._start_time:.2f}, Objective: {obj_val}\n")
+
+        # 如果总运行时间超过200秒，停止优化
+        if current_time - model._start_time >= solveTime:
+            print("总运行时间超过200秒，停止优化")
+            model.terminate()
+
 def generate_ds(graph, filename):
 
     # 这里的代码就是将上面生成的图结构转化成cplex格式的lp问题
@@ -92,31 +147,19 @@ def generate_ds(graph, filename):
 
 
 
-# 定义回调函数
-def mycallback(model, where):
-    # 获取当前时间
-    current_time = time.time()
+# 定义一个函数来将标准输出重定向到文件
+def redirect_output_to_file(log_file_path):
+    sys.stdout = open(log_file_path, 'w')  # 重定向到文件
 
-    if where == gp.GRB.Callback.MIP:
-        # 获取当前的最优目标值
-        obj_val = model.cbGet(gp.GRB.Callback.MIP_OBJBST)
-
-        # 如果最优目标值发生变化
-        if obj_val < gp.GRB.INFINITY and obj_val != model._best_obj:
-            # 更新最优值和时间
-            model._best_obj = obj_val
-            model._last_change_time = current_time
-            print(f"当前时间: {current_time}, 最优值: {obj_val}")
-            # 记录最优值变化
-            model._log.append(f"Time: {current_time}, Objective: {obj_val}\n")
-
-        # 如果超过30秒没有变化，停止优化
-        if current_time - model._last_change_time >= 30:
-            print("超过30秒最优值没有变化，停止优化")
-            model.terminate()
 
 def solve_single(lp_path, sol_path, time_limit):
-    # print(f'process lp: {lp_path}')
+    # 定义日志文件路径
+    log_file_path = f"{lp_path[:-2]}log"  # 日志文件保存路径
+    dual_output = DualOutput(log_file_path)  # 创建 DualOutput 实例来同时输出到文件和控制台
+
+    # 重定向 stdout 到 dual_output 实例
+    sys.stdout = dual_output
+
     print(f"正在求解文件: {lp_path}")
 
     model = gp.read(lp_path)
@@ -142,7 +185,7 @@ def solve_single(lp_path, sol_path, time_limit):
         for v in model.getVars():
             print(f"{v.varName} = {v.x}")
     elif model.status == gp.GRB.INTERRUPTED:
-        print("求解因超过30秒无最优值变化被中止")
+        print("求解结束")
 
     directory = os.path.dirname(lp_path)
     file_name = os.path.basename(lp_path)
@@ -159,8 +202,9 @@ def solve_single(lp_path, sol_path, time_limit):
             if int(v.x) == 1 and v.varName[0] == 'x':
                 f.write(f'{v.varName[1:]}\n')
 
-
-
+    # 关闭文件输出
+    dual_output.close()
+# 你的其他代码
 def solve_ds(lp_path, time_limit=50):
     sol_file_path = f'{lp_path[:-2]}sol'
     if os.path.exists(sol_file_path):
@@ -169,7 +213,6 @@ def solve_ds(lp_path, time_limit=50):
 
     solve_single(lp_path, sol_file_path, time_limit=time_limit)
     sys.stdout.flush()
-
 
 def gen_ds(data_dir, ninst, scale_lower, scale_upper=None, solve=True):
     os.makedirs(data_dir, exist_ok=True)
@@ -196,13 +239,9 @@ if __name__ == '__main__':
     # run('testData-with-solve',3000,3100,True,1)
     # run('testData-with-solve',5000,5100,True,1)
     # run('testData-with-solve',7000,7100,True,1)
-    run('testData-with-solveTest',300,400,True,1)
-
-
-
-
-
-
-
-
-
+    solveTime = 50
+    run('bigpicdata',1000,5000,True,30)
+    run('bigpicdata',5001,10000,True,30)
+    solveTime = 100
+    run('bigpicdata',10001,15000,True,30)
+    run('bigpicdata',15001,20000,True,30)

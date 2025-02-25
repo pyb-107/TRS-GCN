@@ -10,9 +10,9 @@ import glob
 import numpy as np
 import shutil
 import gzip
+import utils
 from os.path import expanduser
 import pyscipopt as scip
-from data_generator import utils
 
 filedir = os.path.dirname(__file__)
 data_path = f'{filedir}/test'
