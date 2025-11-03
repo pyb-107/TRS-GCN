@@ -1,74 +1,189 @@
-# 项目名称
 
-本项目旨在通过结合深度学习和现代混合整数线性规划（MILP）求解器，加速解决航班调度问题（Aircraft Routing Problem, ARP）。本研究主要探索如何通过深度学习技术来加速求解大规模、紧凑的 MILP 模型，并利用真实世界的航班数据进行验证。与传统的列生成法（Column Generation）和启发式算法相比，本项目采用了一个创新的两阶段航班选择图卷积网络（TRS-GCN），用于预测决策变量的重要性，从而指导 MILP 求解器的搜索过程。
+# Project Name
 
-该方法的核心思想是将 ARP 问题分为两个阶段：首先，使用图卷积网络（GCN）根据航班之间的相互依赖关系对航班串进行排序和选择，从而减少求解空间；其次，通过启发式算法解决连接已选择航班串的约束问题，确保得到有效且可行的航班调度方案。
+This project aims to accelerate the solution of the Aircraft Routing Problem (ARP) through the integration of deep learning and modern Mixed-Integer Linear Programming (MILP) solvers. The research primarily explores how deep learning techniques can speed up the solution of large, compact MILP models, validated using real-world flight data. Unlike traditional Column Generation and heuristic algorithms, this project employs an innovative two-stage Route Selection Graph Convolutional Network (TRS-GCN) to predict the importance of decision variables, guiding the MILP solver's search process.
 
-通过这些加速策略，本项目显著提升了求解 MILP 问题的效率，并保持了最优解的质量。项目包括以下几个主要模块，每个模块具有独立的功能和任务：
+The core idea of this method is to divide the ARP problem into two stages: first, using Graph Convolutional Networks (GCN) to rank and select flight strings based on their interdependencies, reducing the solution space; second, using a heuristic algorithm to address the constraints of connecting the selected flight strings, ensuring an effective and feasible flight scheduling solution.
 
-## 目录结构
-code1-solveByCG: 列生成法求解器
+Through these acceleration strategies, the project significantly improves the efficiency of solving MILP problems while maintaining optimality. The project includes several main modules, each with independent functions and tasks:
 
-code2-solveByGurobi: Gurobi求解基准
+## Directory Structure
 
-code3-dataGenerator: 数据生成器
+```
+- code1-solveByCG: Column Generation Solver
+- code2-solveByGurobi: Gurobi Baseline Solver
+- code3-dataGenerator: Data Generator
+- code4-network: Network Architecture Implementation and Training
+- code5-dataProcessing: Data Processing and Experimental Results
+- code6-paparPicture: Table Generator
+- PySCIPOpt: SCIP Solver Source Code
+```
 
-code4-network: 网络结构的实现与训练
-
-code5-dataProcessing: 数据处理与实验结果
-
-code6-paparPicture: 表格生成器
-
-PySCIPOpt: SCIP求解器源码
-## 模块介绍
+## Module Descriptions
 
 ### code1-solveByCG
-此模块实现了列生成法（Column Generation）求解器，用于优化航班调度问题。通过求解松弛后的主问题并添加新的列，逐步逼近最优解。
+This module implements a Column Generation solver to optimize the Aircraft Routing Problem. It iteratively solves the relaxed master problem and adds new columns to approach the optimal solution.
 
-- **输入：** 航班数据、航班串数据
-- **输出：** 优化的航班调度方案
-- **算法：** 使用 Gurobi 作为求解工具，采用列生成法进行优化。
+- **Input:** Flight data, flight string data
+- **Output:** Optimized flight scheduling solution
+- **Algorithm:** Uses Gurobi as the solver and applies Column Generation for optimization.
 
 ### code2-solveByGurobi
-此模块实现了基准解求解器，利用 Gurobi 求解器为列生成法提供基准解，比较不同算法的优化效果。
+This module implements a baseline solver using Gurobi to provide a reference solution for the Column Generation approach and compare optimization performance between different algorithms.
 
-- **输入：** 航班数据、航班串数据
-- **输出：** Gurobi 基准解
-- **算法：** 基于 Gurobi 求解的整数规划问题。
+- **Input:** Flight data, flight string data
+- **Output:** Gurobi baseline solution
+- **Algorithm:** MILP problem solved using Gurobi.
 
 ### code3-dataGenerator
-此模块用于生成训练数据集，随机生成不同规模的航班调度问题，供后续模型训练使用。
+This module generates training datasets by randomly creating flight scheduling problems of varying scales for model training.
 
-- **输入：** 航班信息、航班串信息
-- **输出：** 随机生成的训练数据
-- **功能：** 生成不同规模的航班调度数据集，模拟实际航班调度场景。
+- **Input:** Flight information, flight string information
+- **Output:** Randomly generated training data
+- **Function:** Generates flight scheduling datasets of varying sizes, simulating real-world flight scheduling scenarios.
 
 ### code4-network
-此模块实现了用于航班调度优化的神经网络结构与训练代码。通过深度学习模型进行航班调度的预测与优化。
+This module implements the network architecture and training code used for flight scheduling optimization. It applies deep learning models to predict and optimize flight scheduling solutions.
 
-- **输入：** 航班调度数据、历史优化结果
-- **输出：** 训练后的神经网络模型
-- **功能：** 使用深度神经网络来预测航班调度优化的解。
+- **Input:** Flight scheduling data, historical optimization results
+- **Output:** Trained neural network model
+- **Function:** Uses deep neural networks to predict and optimize flight scheduling solutions.
 
 ### code5-dataProcessing
-此模块负责处理数据并生成论文中的各种表格和实验结果。包括数据清洗、数据整合和结果可视化等任务。
+This module is responsible for processing data and generating various tables and experimental results used in the paper. It includes tasks such as data cleaning, data integration, and result visualization.
 
-- **输入：** 航班调度数据、实验日志
-- **输出：** 各种实验结果表格
-- **功能：** 生成并可视化模型的运行结果，为论文中的分析提供支持。
+- **Input:** Flight scheduling data, experimental logs
+- **Output:** Various experimental result tables
+- **Function:** Generates and visualizes the results of the model, providing support for analysis in the paper.
 
 ### code6-paparPicture
-此模块实现了用于生成论文中的表格、图形和可视化内容，帮助生成实验结果的展示。
+This module generates tables, graphs, and visual content for the paper, aiding in the presentation of experimental results.
 
-- **输入：** 实验数据
-- **输出：** 论文所需的表格和图片
-- **功能：** 自动化生成论文中的各种表格和图形。
+- **Input:** Experimental data
+- **Output:** Tables and figures required for the paper
+- **Function:** Automatically generates various tables and figures for the paper.
 
 ### PySCIPOpt
-此模块是 SCIP 求解器的 Python 接口，负责解决整数规划问题。该模块进行了重构，用于实现特征提取算法，以便更好地与其他模块进行集成。
+This module is the Python interface for the SCIP solver, used to solve integer programming problems. It has been restructured to implement feature extraction algorithms, facilitating better integration with other modules.
 
-- **输入：** 线性规划问题
-- **输出：** 优化后的解
-- **功能：** 提供求解整数规划问题的基础功能，并进行特征提取以优化求解过程。
+- **Input:** Linear programming problems
+- **Output:** Optimized solutions
+- **Function:** Provides basic functionality for solving integer programming problems and performs feature extraction to optimize the solving process.
 
 ---
+
+## Installation Dependencies
+
+1. Install Gurobi solver:
+   ```bash
+   pip install gurobipy
+   ```
+
+2. Install SCIP solver:
+   ```bash
+   pip install pyscipopt
+   ```
+
+3. Other dependencies:
+   ```bash
+   pip install numpy scipy matplotlib
+   ```
+
+## Usage Instructions
+
+### Data Generation
+Before using the models, generate the datasets. Run the `code3-dataGenerator` module to generate the required training data.
+
+### Solving Optimization Problems
+Use the `code1-solveByCG` and `code2-solveByGurobi` modules to solve the Aircraft Routing Problem. Please refer to the respective modules for code examples on how to run them.
+
+## Contributions
+
+Pull requests are welcome, and any suggestions and improvements are greatly appreciated!
+
+## License
+
+MIT License
+
+---
+
+# Requirements
+
+## Python Code Dependencies
+
+- Python version 3.6.9
+- Cuda version 10.0 (required by TRIG-GNN)
+- CMake version >= 3.15
+- python3-venv (install by running `sudo apt-get install python3-venv`)
+- Two virtual environments with different versions of TensorFlow (TF1 and TF2), created by running:
+  ```bash
+  python3 -m venv [env_name]
+  ```
+  Then activate the environment and install the respective dependencies:
+  - For TF1: `source tf1/bin/activate` and run `pip3 install -r requirements_1.txt`
+  - For TF2: `source tf2/bin/activate` and run `pip3 install -r requirements_2.txt`
+- Latest pip (upgrade by running `pip3 install -U pip`)
+
+## C++ Code Dependencies
+
+- C++ Boost library is required, which can be downloaded [here](https://www.boost.org/users/download/).
+- SCIP solver version 6.0.1 is required, available for download [here](https://www.scipopt.org/index.php#download). An academic license can be applied for [here](https://www.scipopt.org/index.php#license).
+- After setup, build the C++ code with CMake to obtain the executable `CO`.
+
+## Datasets
+
+Datasets are available at [this link](https://drive.google.com/file/d/1HBBdwtQ1fa31inb9wVNcT-Tslu4WAeny/view?usp=sharing).
+
+## Model Training
+
+- To train GG-GCN, XGBoost, and LR models, activate the tf1 environment and then run the bash script:
+  ```bash
+  ./model_train.sh
+  ```
+
+- To train the TRIG-GCN model, activate the tf2 environment and run:
+  ```bash
+  ./model_train_trig_gcn.sh
+  ```
+
+## Model Testing
+
+- To test GG-GCN, XGBoost, and LR models, activate the tf1 environment and run:
+  ```bash
+  ./model_test.sh
+  ```
+
+- To test the TRIG-GCN model, activate the tf2 environment and run:
+  ```bash
+  ./model_test_trig_gcn.sh
+  ```
+
+The testing results will be output to the `ret_model` folder. These results correspond to the results presented in Table 1 of our paper.
+
+## Evaluation of Heuristics
+
+Run the bash script `./model_predict.sh` to produce solution predictions for the proposed heuristic. Alternatively, you can skip this step and use the provided solution predictions in the dataset.
+
+Then, run:
+```bash
+./heur_eval.sh
+```
+It takes several hours to obtain the results. Please note that each process should run on a single CPU. The intermediate results will be saved in the `ret_solver` folder.
+
+Once the previous step is finished, run:
+```bash
+./calc_stats.sh
+```
+This should be run under the tf1 environment to generate the mean statistics, which will be saved in the `ret_solver` folder. These results correspond to the statistics in Table 2 and Table 3 of our paper.
+
+## Generating Your Own Training/Test Problem Instances
+
+To generate your own training and test instances, use the code in the `data_generator` directory. Each problem directory contains two files:
+
+- `gen_inst_*`: generates problem instances with different parameters and/or solves the problem instances to optimality.
+- `make_sample_*`: extracts features for problem instances and prepares training data.
+
+Two Python packages are required for data generation:
+- `gurobipy` (for solving training instances to optimality).
+- `PySCIPOpt` (for feature extraction). Note that you need to install our version of PySCIPOpt included in this project for feature extraction.
+
